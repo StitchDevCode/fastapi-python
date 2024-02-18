@@ -1,5 +1,5 @@
 from typing import Text, Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 from uuid import uuid4 as uuid
@@ -36,8 +36,31 @@ def post_posts(post: Post):
     return posts[-1]
 
 @app.get("/posts/{post_id}")
-def get_post():
-    return "Funciona"
+def get_post(post_id: str):
+    for post in posts:
+        if post["id"] == post_id:
+            return post
+    return HTTPException(status_code=404, detail="Post not found")
+        
+
+@app.delete("/posts/{post_id}")
+def delete_post(post_id: str):
+        for index, post in enumerate(posts):
+            if post["id"] == post_id:
+                posts.pop(index)
+                return {"message": "Post has been deleted"}
+        return HTTPException(status_code=404, detail="Post not found")
+
+@app.put("/posts/{post_id}")
+def update_post(post_id: str, updatePost: Post):
+        for index, post in enumerate(posts):
+              if post["id"] == post_id:
+                   posts[index]["title"] = updatePost.title
+                   posts[index]["author"] = updatePost.author
+                   posts[index]["content"] = updatePost.content
+                   return {"message": "Post has been updated successfully"}
+        return HTTPException(status_code=404, detail="Post not found")   
+
 
 # Si ejecutamos este script directamente, arrancaremos el servidor
 if __name__ == "__main__":
